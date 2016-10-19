@@ -1,0 +1,19 @@
+{
+   "background": {
+      "page": "html/background.html"
+   },
+   "browser_action": {
+      "default_icon": "images/139.png",
+      "default_popup": "html/mailList.html"
+   },
+   "description": "139邮箱助手",
+   "icons": {
+      "128": "images/139_128.png",
+      "16": "images/139.png",
+      "48": "images/139_48.png"
+   },
+   "manifest_version": 2,
+   "name": "139邮箱助手",
+   "permissions": [ "management", "notifications", "tabs", "cookies", "http://*/*" ],
+   "version": "2.1.0"
+}

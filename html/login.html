@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title></title>
+    <link rel="stylesheet" href="/css/main.css" type="text/css" />   
+    <script src="/js/login.pack.js" type="text/javascript"></script>
+</head>
+<body>
+    <div class="tipLayerMain show" id="container">
+        <header class="tipLayer_title">
+            <h1><a title="中国移动139邮箱" id="title">中国移动139邮箱</a></h1>
+        </header>
+        <fieldset class="tipLayerLogin">
+            <legend class="hide">登录139邮箱</legend>
+            <ul>
+                <li class="ta_r clearAll">
+                    <span class="fz_14 fl c_004481">登录139邮箱</span>
+                    <a id="aRegister">免费注册</a>
+                </li>
+                <li class="errow" id="errorTip" style="display:none"></li>
+                <li class="p_relative" id="account">
+                    <input type="text" tabindex="1" class="urTxt c_BEBEBE" placeholder="通行证号/手机号码/别名" name="UserName" id="username" />
+                    <label class="mLabel">@139.com</label>
+                </li><!--内容为空时加上c_BEBEBE-->
+                <li class="mt_10">
+                    <input type="password" tabindex="2" placeholder="密码" class="pwTxt c_BEBEBE" name="Password" id="password" />
+                </li><!--内容为空时加上c_BEBEBE-->
+                <li class="ta_r clearAll mt_10" style="display:none;" id="verifyCode">
+                    <label class="fl">
+                        <input type="text" name="verifyCode" id="txtVerify" class="pwTest pwTxt c_BEBEBE mr_5" />
+                    </label>
+                    <img id="imgVerify" src="">
+                </li>
+                <li class="ta_r clearAll">
+                    <label class="fl">
+                        <input tabindex="3" type="checkbox" tabindex="3" name="autoLogin" class="mr_5" checked id="check" />
+                        两周内自动登录
+                    </label>
+                    <a id="aForget">忘记密码</a>
+                </li>
+                <li class="ta_c">
+                    <a class="fz_16 fw_b btn bigBtn" tabindex="4" id="aSubmit">登 录</a>
+                </li>
+            </ul>
+        </fieldset>
+    </div>
+</body>
+</html>

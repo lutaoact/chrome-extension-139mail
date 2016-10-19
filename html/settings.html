@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title></title>
+    <link rel="stylesheet" href="/css/main.css" type="text/css" />
+    <script src="/js/settings.pack.js" type="text/javascript"></script>
+</head>
+<body>
+    <div class="tipLayerMain show" id="container">
+        <header class="tipLayer_title p_relative">
+            <h2 class="fz_14">设置</h2>
+        </header>
+        <section class="setSwitch">
+            <menu>
+                <ul class="setSwitchTab clearAll" id="tabUl">
+                    <li id="commonSets"><a class="current">常规设置</a></li>
+                    <li id="accountSets"><a>帐号管理</a></li>
+                </ul>
+            </menu>
+            <section>
+                <div class="tabInfo" id="commonSetsContent" style="display:block">
+                    <dl>
+                        <dt id="newmailreminddt">新邮件提醒</dt>
+                        <dd id="newmailreminddd"><label><input type="checkbox" checked id="notifyCheckBox" />&nbsp;新邮件到达弹出提醒</label></dd>
+                        <dt>检查新邮件</dt>
+                        <dd>
+                            每隔
+                            <div class="p_relative imitateSelect">
+                                <input type="text" name="" id="txtInterval" readonly value="5分钟" class="radius3" style="width:54px" />
+                                <i class="triangle" id="select"></i>
+                                <ul class="imitateOption hide" style="width:62px;" id="intervalList">
+                                    <li><a>5分钟</a></li>
+                                    <li><a>10分钟</a></li>
+                                    <li><a>30分钟</a></li>
+                                </ul>
+                            </div>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="tabInfo" id="accountSetsContent">
+                    <ul class="accountlist">
+                        <li class="ta_r">
+                            <span class="accountName fl" id="account"></span><a id="statusText" class="true">取消自动登录</a>
+                        </li>
+                    </ul>
+                    <p class="c_999 pl_15 pr_15">取消自动登录后，下次打开您的浏览器可以登录其他帐号，也可以重新登录原帐号。</p>
+                </div>
+            </section>
+            <p class="moreMail ta_c"><a class="btn sureBtn" id="aConfirm">确 定</a>&nbsp;&nbsp;<a class="btn cancelBtn" id="aCancel">返 回</a></p>
+        </section>
+    </div>
+    <div class="funTips boxShadow3c radius3" id="successTip" style="left:50%;top:50%;margin-left:-123px;margin-top:-21px;display:none;">
+        <p class="txt ta_c"><i class="i-tipsOk"></i>&nbsp;您的新设置已保存成功！</p>
+    </div>
+    
+</body>
+</html>
