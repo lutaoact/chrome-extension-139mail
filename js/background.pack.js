@@ -1,4 +1,4 @@
-﻿var PluginConfig = {
+var PluginConfig = {
     Plugin_Pop_Page_Width: 312,
     Max_Mail_Count: 10,
     ExceptFidMap: [5, 6, 11],
@@ -77,7 +77,7 @@
     }
 };
 
-﻿///<reference path='../ts/chrome.d.ts' />
+///<reference path='../ts/chrome.d.ts' />
 String.prototype.trim = function () {
     return this.replace(/^\s*/, '').replace(/\s*$/, '');
 };
@@ -1262,7 +1262,7 @@ var Extension;
     var Notification = Extension.Notification;
 })(Extension || (Extension = {}));
 
-﻿///<reference path='utils.ts' />
+///<reference path='utils.ts' />
 ///<reference path='config.ts' />
 var BackgroundPage;
 (function (BackgroundPage) {
