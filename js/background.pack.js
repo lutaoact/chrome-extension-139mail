@@ -463,7 +463,7 @@ var _;
                 }
                 var type = getDataType(obj);
                 if (type == "String") {
-                    return prefix + tagXML("string", name, this.xmlEncode(textXML(obj)));
+                    return prefix + tagXML("string", name, xmlEncode(textXML(obj)));
                 } else {
                     if (type == "Object") {
                         if (obj.nodeType) {
@@ -890,8 +890,9 @@ var _;
             var method = conf.method.toLowerCase();
 
             if (conf.dataType == "xml" && typeof conf.data == "object") {
-                //sendData = T.Text.json2xml(conf.data);
-                sendData = JSON.stringify(conf.data);
+                sendData = _.Text.json2xml(conf.data);
+                console.log('sendData', sendData);
+//                sendData = JSON.stringify(conf.data);
                 reqHeaders["Content-Type"] = "application/xml";
             } else if (typeof conf.data == "object") {
                 var arr = [];
@@ -913,7 +914,7 @@ var _;
             if (conf.behaviorKey) {
                 url += "&behaviorData=" + (_.Storage.get(conf.behaviorKey, true) || "");
             }
-            url += "&rnd=" + Math.random();
+//            url += "&rnd=" + Math.random();
             xhr.open(conf.method, url, true);
             this.setHeaders(xhr, reqHeaders);
             var timeout = conf.timeout || 60000;
@@ -1316,27 +1317,20 @@ var BackgroundPage;
             request.autoLogin = autoLogin;
 
             function getMailServiceData(sid, callback) {
+                var inboxUrl = PluginConfig.getProtocal() +
+                               PluginConfig.DomainConfig.RM_AppServer +
+                               "/s?func=mbox:listMessages&sid=" + sid +
+                               "&comefrom=54";
                 _.Ajax.post({
-                    url: _.Url.makeUrl(PluginConfig.getProtocal() + PluginConfig.DomainConfig.AppServer + "/self/pluginmailservice.js", { sid: sid }),
+                    url: inboxUrl,
                     data: {
-                        folderList: {
-                            stats: 1,
-                            type: 0
-                        },
-                        mailList: {
-                            fid: 0,
-                            recursive: 0,
-                            isSearch: 1,
-                            flags: {
-                                read: 1
-                            },
-                            condictions: {
-                                read: 1
-                            },
-                            limit: 1000,
-                            start: 1,
-                            total: 100
-                        }
+                      fid: 1,
+                      order: 'receiveDate',
+                      desc: '1',
+                      start: 1,
+                      total: 10,
+                      topFlag: 'top',
+                      sessionEnable: '2',
                     },
                     behaviorKey: MailService.StorageKey.BehaviorData,
                     dataType: "xml",
@@ -1449,6 +1443,7 @@ var BackgroundPage;
 
                 MailService.self.request.getMailServiceData(MailService.sid, function (result) {
                     var mailData = result['var'];
+                    console.log('var', mailData);
                     var unreadMailInfo = This.getUnreadMailInfo(mailData);
                     var userInfo = mailData.userInfo;
                     var uid = _.Mobile.getEmail(_.Mobile.remove86(userInfo.uid));
@@ -1499,7 +1494,10 @@ var BackgroundPage;
                 //var checkMailInterval = 1;
                 setInterval(function () {
                     MailService.self.actions.refreshData('', function (data) {
+                        console.log('data', data);
+                        console.log('showNotificationFlag', showNotificationFlag);
                         if (showNotificationFlag && data.newMailCount > 0) {
+                            console.log(newMailList);
                             var newMail = data.newMailList[0];
                             var from = _.Email.getName(newMail.from);
                             var subject = newMail.subject;
@@ -1523,7 +1521,8 @@ var BackgroundPage;
                             });
                         }
                     });
-                }, checkMailInterval * 60 * 1000);
+//                }, checkMailInterval * 60 * 1000);
+                }, checkMailInterval * 10 * 1000);
             }
             actions.autoCheckMail = autoCheckMail;
         })(MailService.actions || (MailService.actions = {}));
