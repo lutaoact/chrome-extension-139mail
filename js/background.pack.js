@@ -912,7 +912,7 @@ var _;
             }
             var url = conf.url;
             if (conf.behaviorKey) {
-                url += "&behaviorData=" + (_.Storage.get(conf.behaviorKey, true) || "");
+                url += "&behaviorData=" + (_.Storage.get(conf.behaviorKey, true) || "");//如果本地存储中有数据，就清理掉
             }
 //            url += "&rnd=" + Math.random();
             xhr.open(conf.method, url, true);
@@ -1281,7 +1281,7 @@ var BackgroundPage;
 
         function init() {
             var currentNumber = _.Storage.get("currentNumber");
-            MailService.StorageKey = _.Service.initStorageKey(currentNumber, PluginConfig.StorageKey);
+            MailService.StorageKey = _.Service.initStorageKey(currentNumber, PluginConfig.StorageKey);//一个缓存对象，存储StorageKey里面指定的一些数据
             MailService.UserSettings = JSON.parse(_.Storage.get(MailService.StorageKey.UserSettings)) || PluginConfig.DefaultSettings;
 
             MailService.self = BackgroundPage.MailService;
@@ -1316,11 +1316,38 @@ var BackgroundPage;
             }
             request.autoLogin = autoLogin;
 
+            function getInitUserDataConfig(sid, cb) {
+              var inboxUrl = PluginConfig.getProtocal() +
+                             PluginConfig.DomainConfig.RM_AppServer +
+                             "/s?func=user:getInitDataConfig&sid=" + sid +
+                             "&comefrom=54";//func参数的值，冒号不能encode
+              _.Ajax.post({
+                url: inboxUrl,
+                data: {},
+                behaviorKey: MailService.StorageKey.BehaviorData,
+                dataType: "xml",
+                success: function (res, json) {
+                  cb({
+                    folderList: json['var'].folderList,
+                    userInfo: {
+                      uid: json['var'].userAttrs.uid,
+                      webappserver: 'appmail.mail.10086.cn'
+                    },
+                  });
+                },
+                fail: function (res) {
+                  MailService.self.actions.handleError();
+                  cb(null);
+                }
+              });
+            }
+            request.getInitUserDataConfig = getInitUserDataConfig;
+
             function getMailServiceData(sid, callback) {
                 var inboxUrl = PluginConfig.getProtocal() +
                                PluginConfig.DomainConfig.RM_AppServer +
                                "/s?func=mbox:listMessages&sid=" + sid +
-                               "&comefrom=54";
+                               "&comefrom=54";//func参数的值，冒号不能encode
                 _.Ajax.post({
                     url: inboxUrl,
                     data: {
@@ -1407,8 +1434,7 @@ var BackgroundPage;
             }
             actions.getFolderCount = getFolderCount;
 
-            function getUnreadMailInfo(mailData) {
-                var mailList = mailData.mailList;
+            function getUnreadMailInfo(mailList) {
                 var unreadMailList = [];
                 var newMailCount = 0;
                 var newMailList = [];
@@ -1438,40 +1464,50 @@ var BackgroundPage;
             actions.getUnreadMailInfo = getUnreadMailInfo;
 
             function refreshData(ssoSid, callback) {
-                var This = MailService.self.actions;
-                MailService.sid = ssoSid || MailService.sid;
+              var This = MailService.self.actions;
+              MailService.sid = ssoSid || MailService.sid;
 
-                MailService.self.request.getMailServiceData(MailService.sid, function (result) {
-                    var mailData = result['var'];
-                    console.log('var', mailData);
-                    var unreadMailInfo = This.getUnreadMailInfo(mailData);
-                    var userInfo = mailData.userInfo;
-                    var uid = _.Mobile.getEmail(_.Mobile.remove86(userInfo.uid));
-                    var userNumber = _.Email.getAccount(uid);
-                    MailService.UserData = {
-                        mailList: unreadMailInfo.unreadMailList,
-                        newMailCount: unreadMailInfo.newMailCount,
-                        newMailList: unreadMailInfo.newMailList,
-                        folderCount: This.getFolderCount(mailData),
-                        uid: uid,
-                        userName: mailData.userInfo.userName || userNumber,
-                        sid: MailService.sid,
-                        webappserver: userInfo.webappserver
-                    };
+              var sid = MailService.sid;
+              var getInitUserDataConfig = MailService.self.request.getInitUserDataConfig;
+//                getInitUserDataConfig(sid, function(initUserData) {
+//                  console.log('initUserData', initUserData);
+//                });
 
-                    MailService.self.actions.refreshStorageKey(userNumber);
-                    _.Storage.set(MailService.StorageKey.LoginFlag, 1);
-                    _.Storage.set(MailService.StorageKey.UserData, JSON.stringify(MailService.UserData));
+              getInitUserDataConfig(sid, function (initUserData) {
+                console.log('initUserData', initUserData);
+                //TODO 处理邮件列表，暂时都为空
+                var mailList = [];
+                var unreadMailInfo = This.getUnreadMailInfo(mailList);
 
-                    Extension.UI.setBadgeText(MailService.UserData.folderCount);
+                var userInfo = initUserData.userInfo;
+                var uid = userInfo.uid;
+                var userNumber = _.Email.getAccount(uid);
+                MailService.UserData = {
+                  mailList: unreadMailInfo.unreadMailList,
+                  newMailCount: unreadMailInfo.newMailCount,
+                  newMailList: unreadMailInfo.newMailList,
+                  folderCount: This.getFolderCount(initUserData),
+                  unreadMessageCount: This.getFolderCount(initUserData),
+                  uid: uid,
+                  userName: userNumber,
+                  sid: sid,
+                  webappserver: userInfo.webappserver
+                };
+                console.log('userData', MailService.UserData);
 
-                    Extension.Communication.sendMessage({
-                        sendType: "refreshed",
-                        onType: "refresh",
-                        message: MailService.UserData
-                    });
-                    callback && callback(MailService.UserData);
+                MailService.self.actions.refreshStorageKey(userNumber);
+                _.Storage.set(MailService.StorageKey.LoginFlag, 1);
+                _.Storage.set(MailService.StorageKey.UserData, JSON.stringify(MailService.UserData));
+
+                Extension.UI.setBadgeText(MailService.UserData.folderCount);
+
+                Extension.Communication.sendMessage({
+                  sendType: "refreshed",
+                  onType: "refresh",
+                  message: MailService.UserData
                 });
+                callback && callback(MailService.UserData);
+              });
             }
             actions.refreshData = refreshData;
 
