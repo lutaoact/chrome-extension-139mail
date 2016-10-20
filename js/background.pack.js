@@ -1316,11 +1316,25 @@ var BackgroundPage;
             }
             request.autoLogin = autoLogin;
 
+            function getMailServiceData(sid, cb) {
+              var mailServiceData = {};
+              getInitUserDataConfig(sid, function(initUserData) {
+                mailServiceData.folderList = initUserData.folderList;
+                mailServiceData.userInfo   = initUserData.userInfo;
+
+                getMailList(sid, function(mailList) {
+                  mailServiceData.mailList = mailList;
+                  cb(mailServiceData);
+                });
+              });
+            }
+            request.getMailServiceData = getMailServiceData;
+
             function getInitUserDataConfig(sid, cb) {
               var inboxUrl = PluginConfig.getProtocal() +
                              PluginConfig.DomainConfig.RM_AppServer +
                              "/s?func=user:getInitDataConfig&sid=" + sid +
-                             "&comefrom=54";//func参数的值，冒号不能encode
+                             "&comefrom=54";
               _.Ajax.post({
                 url: inboxUrl,
                 data: {},
@@ -1331,7 +1345,8 @@ var BackgroundPage;
                     folderList: json['var'].folderList,
                     userInfo: {
                       uid: json['var'].userAttrs.uid,
-                      webappserver: 'appmail.mail.10086.cn'
+                      webappserver: 'appmail.mail.10086.cn',
+                      defaultSender: json['var'].userConfig.default_sender,
                     },
                   });
                 },
@@ -1343,38 +1358,28 @@ var BackgroundPage;
             }
             request.getInitUserDataConfig = getInitUserDataConfig;
 
-            function getMailServiceData(sid, callback) {
-                var inboxUrl = PluginConfig.getProtocal() +
-                               PluginConfig.DomainConfig.RM_AppServer +
-                               "/s?func=mbox:listMessages&sid=" + sid +
-                               "&comefrom=54";//func参数的值，冒号不能encode
-                _.Ajax.post({
-                    url: inboxUrl,
-                    data: {
-                      fid: 1,
-                      order: 'receiveDate',
-                      desc: '1',
-                      start: 1,
-                      total: 10,
-                      topFlag: 'top',
-                      sessionEnable: '2',
-                    },
-                    behaviorKey: MailService.StorageKey.BehaviorData,
-                    dataType: "xml",
-                    success: function (res, json) {
-                        if (callback) {
-                            callback(json);
-                        }
-                    },
-                    fail: function (res) {
-                        MailService.self.actions.handleError();
-                        if (callback) {
-                            callback(null);
-                        }
-                    }
-                });
+            function getMailList(sid, cb) {
+              var inboxUrl = PluginConfig.getProtocal() +
+                             PluginConfig.DomainConfig.RM_AppServer +
+                             "/s?func=mbox:listMessages&sid=" + sid +
+                             "&comefrom=54";
+              _.Ajax.post({
+                url: inboxUrl,
+                data: {
+                  fid: 1, order: 'receiveDate', desc: '1', start: 1,
+                  total: 10, topFlag: 'top', sessionEnable: '2',
+                },
+                dataType: "xml",
+                success: function (res, json) {
+                  cb(json['var']);
+                },
+                fail: function (res) {
+                  MailService.self.actions.handleError();
+                  cb(null);
+                }
+              });
             }
-            request.getMailServiceData = getMailServiceData;
+            request.getMailList = getMailList;
         })(MailService.request || (MailService.request = {}));
         var request = MailService.request;
 
@@ -1468,26 +1473,23 @@ var BackgroundPage;
               MailService.sid = ssoSid || MailService.sid;
 
               var sid = MailService.sid;
-              var getInitUserDataConfig = MailService.self.request.getInitUserDataConfig;
-//                getInitUserDataConfig(sid, function(initUserData) {
-//                  console.log('initUserData', initUserData);
-//                });
+              var Request = MailService.self.request;
 
-              getInitUserDataConfig(sid, function (initUserData) {
-                console.log('initUserData', initUserData);
-                //TODO 处理邮件列表，暂时都为空
-                var mailList = [];
+              Request.getMailServiceData(sid, function (mailServiceData) {
+                console.log('mailServiceData', mailServiceData);
+
+                var mailList = mailServiceData.mailList;
                 var unreadMailInfo = This.getUnreadMailInfo(mailList);
 
-                var userInfo = initUserData.userInfo;
+                var userInfo = mailServiceData.userInfo;
                 var uid = userInfo.uid;
                 var userNumber = _.Email.getAccount(uid);
                 MailService.UserData = {
                   mailList: unreadMailInfo.unreadMailList,
                   newMailCount: unreadMailInfo.newMailCount,
                   newMailList: unreadMailInfo.newMailList,
-                  folderCount: This.getFolderCount(initUserData),
-                  unreadMessageCount: This.getFolderCount(initUserData),
+                  folderCount: This.getFolderCount(mailServiceData),
+                  unreadMessageCount: This.getFolderCount(mailServiceData),
                   uid: uid,
                   userName: userNumber,
                   sid: sid,
@@ -1526,7 +1528,7 @@ var BackgroundPage;
                 var checkMailInterval = MailService.UserSettings.checkMailInterval;
 
                 console.log(checkMailInterval);
-                
+
                 //var checkMailInterval = 1;
                 setInterval(function () {
                     MailService.self.actions.refreshData('', function (data) {
