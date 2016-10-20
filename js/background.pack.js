@@ -1559,8 +1559,8 @@ var BackgroundPage;
                             });
                         }
                     });
-//                }, checkMailInterval * 60 * 1000);
-                }, checkMailInterval * 10 * 1000);
+                }, checkMailInterval * 60 * 1000);
+//                }, checkMailInterval * 10 * 1000);
             }
             actions.autoCheckMail = autoCheckMail;
         })(MailService.actions || (MailService.actions = {}));
