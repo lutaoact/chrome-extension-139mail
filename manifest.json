@@ -15,5 +15,5 @@
    "manifest_version": 2,
    "name": "139邮箱助手",
    "permissions": [ "management", "notifications", "tabs", "cookies", "http://*/*" ],
-   "version": "2.1.0"
+   "version": "2.2.0"
 }
