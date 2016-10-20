@@ -891,7 +891,7 @@ var _;
 
             if (conf.dataType == "xml" && typeof conf.data == "object") {
                 sendData = _.Text.json2xml(conf.data);
-                console.log('sendData', sendData);
+//                console.log('sendData', sendData);
 //                sendData = JSON.stringify(conf.data);
                 reqHeaders["Content-Type"] = "application/xml";
             } else if (typeof conf.data == "object") {
@@ -1440,35 +1440,38 @@ var BackgroundPage;
             actions.getFolderCount = getFolderCount;
 
             function getUnreadMailInfo(mailList) {
-                var unreadMailList = [];
-                var newMailCount = 0;
-                var newMailList = [];
-                for (var i = 0; i < mailList.length; i++) {
-                    var info = mailList[i];
-                    if (unreadMailList.length > PluginConfig.Max_Mail_Count - 1)
-                        break;
-                    if (PluginConfig.ExceptFidMap.indexOf(info.fid) < 0) {
-                        unreadMailList.push(info);
+              var unreadMailList = [];
+              var newMailCount = 0;
+              var newMailList = [];
+              for (var i = 0; i < mailList.length; i++) {
+                var info = mailList[i];
+                if (unreadMailList.length > PluginConfig.Max_Mail_Count - 1)
+                  break;
 
-                        if (info.receiveDate === info.modifyDate) {
-                            if (MailService.checkNewMailTime && MailService.checkNewMailTime < info.receiveDate) {
-                                newMailCount++;
-                                newMailList.push(info);
-                            }
-                        }
+                if (PluginConfig.ExceptFidMap.indexOf(info.fid) < 0) {
+                  if (info.flags.read === 1) {
+                    unreadMailList.push(info);
+                  }
+
+                  if (info.receiveDate === info.modifyDate) {
+                    if (MailService.checkNewMailTime && MailService.checkNewMailTime < info.receiveDate) {
+                      newMailCount++;
+                      newMailList.push(info);
                     }
+                  }
                 }
-                MailService.checkNewMailTime = (new Date()).getTime() / 1000;
-                var unreadMailInfo = {
-                    newMailCount: newMailCount,
-                    unreadMailList: unreadMailList,
-                    newMailList: newMailList
-                };
-                return unreadMailInfo;
+              }
+              MailService.checkNewMailTime = (new Date()).getTime() / 1000;
+              var unreadMailInfo = {
+                newMailCount: newMailCount,
+                unreadMailList: unreadMailList,
+                newMailList: newMailList
+              };
+              return unreadMailInfo;
             }
             actions.getUnreadMailInfo = getUnreadMailInfo;
 
-            function refreshData(ssoSid, callback) {
+            function refreshData(ssoSid, cb) {
               var This = MailService.self.actions;
               MailService.sid = ssoSid || MailService.sid;
 
@@ -1476,7 +1479,7 @@ var BackgroundPage;
               var Request = MailService.self.request;
 
               Request.getMailServiceData(sid, function (mailServiceData) {
-                console.log('mailServiceData', mailServiceData);
+//                console.log('mailServiceData', mailServiceData);
 
                 var mailList = mailServiceData.mailList;
                 var unreadMailInfo = This.getUnreadMailInfo(mailList);
@@ -1495,7 +1498,7 @@ var BackgroundPage;
                   sid: sid,
                   webappserver: userInfo.webappserver
                 };
-                console.log('userData', MailService.UserData);
+//                console.log('userData', MailService.UserData);
 
                 MailService.self.actions.refreshStorageKey(userNumber);
                 _.Storage.set(MailService.StorageKey.LoginFlag, 1);
@@ -1508,7 +1511,7 @@ var BackgroundPage;
                   onType: "refresh",
                   message: MailService.UserData
                 });
-                callback && callback(MailService.UserData);
+                cb && cb(MailService.UserData);
               });
             }
             actions.refreshData = refreshData;
@@ -1527,15 +1530,12 @@ var BackgroundPage;
                 var showNotificationFlag = MailService.UserSettings.showNotificationFlag;
                 var checkMailInterval = MailService.UserSettings.checkMailInterval;
 
-                console.log(checkMailInterval);
+//                console.log(checkMailInterval);
 
                 //var checkMailInterval = 1;
                 setInterval(function () {
                     MailService.self.actions.refreshData('', function (data) {
-                        console.log('data', data);
-                        console.log('showNotificationFlag', showNotificationFlag);
                         if (showNotificationFlag && data.newMailCount > 0) {
-                            console.log(newMailList);
                             var newMail = data.newMailList[0];
                             var from = _.Email.getName(newMail.from);
                             var subject = newMail.subject;
